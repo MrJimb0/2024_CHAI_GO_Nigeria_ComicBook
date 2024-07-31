@@ -78,14 +78,15 @@ df_pre <- df_pre %>%
 df_post <- df_post %>% 
   mutate(Class = as.numeric(str_extract(Class, "\\d+")))
 
-
-
-
-
+#Find unique matches between pre and post 
+merged_df <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", "Father's highest level of education", "Mother's highest level of education"), suffixes = c("_pre", "_post"))
+# Select only the student_ID columns
+result_df <- merged_df[, c("Student_ID_pre", "Student_ID_post")]
 
 #merge datasets, matching participants 
 colnames(df_pre)[c(12:40)] <- paste0("Pre_", colnames(df_pre)[c(12:40)])
 colnames(df_post)[c(10:38)] <- paste0("Post_", colnames(df_post)[c(10:38)])
+
 
 df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
                                          "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
