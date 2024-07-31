@@ -1,15 +1,14 @@
-#Analysis. Code by James Dickerson, MD MS and Nicole Kim, BS
-options(scipen=999)
-setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/")
+#Cleaning Code.
+#Authors: Nicole Kim, BS and James Dickerson, MD MS 
 
-library(dplyr)
+options(scipen=999)
+setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Folders from Nicole 7:30:24")
+#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
+
 library(tidyverse)
 library(readxl)
 
-#Cleaning Code
-
-setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
-
+#Import the raw data from excel and format into a pre- and post- DF
 #Pre-intervention responses df
 sheet_fctpre = excel_sheets("FCT_Baseline_Responses_edited.xlsx") 
 FCT_pre = lapply(setNames(sheet_fctpre, sheet_fctpre),  
@@ -55,6 +54,34 @@ rivers_post = lapply(setNames(sheet_riverspost, sheet_riverspost),
 rivers_post = bind_rows(rivers_post, .id="School") 
 
 df_post = bind_rows(FCT_post, kaduna_post, lagos_post, rivers_post)
+
+
+#Standardization Code for variables
+
+df_pre <- df_pre %>% 
+  mutate(Student_ID = as.numeric(`Student #`)) %>% 
+  select(-`Student #`)
+
+df_post <- df_post %>% 
+  mutate(Student_ID = as.numeric(`Student #`)) %>% 
+  select(-`Student #`)
+
+df_pre <- df_pre %>% 
+  mutate(Age = as.numeric(str_extract(Age, "\\d+")))
+
+df_post <- df_post %>% 
+  mutate(Age = as.numeric(str_extract(Age, "\\d+")))
+
+df_pre <- df_pre %>% 
+  mutate(Class = as.numeric(str_extract(Class, "\\d+")))
+
+df_post <- df_post %>% 
+  mutate(Class = as.numeric(str_extract(Class, "\\d+")))
+
+
+
+
+
 
 #merge datasets, matching participants 
 colnames(df_pre)[c(12:40)] <- paste0("Pre_", colnames(df_pre)[c(12:40)])
