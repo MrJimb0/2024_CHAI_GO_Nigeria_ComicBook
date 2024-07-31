@@ -2,8 +2,8 @@
 #Authors: Nicole Kim, BS and James Dickerson, MD MS 
 
 options(scipen=999)
-setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Folders from Nicole 7:30:24")
-#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
+#setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Folders from Nicole 7:30:24")
+setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
 
 library(tidyverse)
 library(readxl)
@@ -68,26 +68,24 @@ df_post <- df_post %>%
 
 df_pre <- df_pre %>% 
   mutate(Age = as.numeric(str_extract(Age, "\\d+")))
-
 df_post <- df_post %>% 
   mutate(Age = as.numeric(str_extract(Age, "\\d+")))
 
 df_pre <- df_pre %>% 
   mutate(Class = as.numeric(str_extract(Class, "\\d+")))
-
 df_post <- df_post %>% 
   mutate(Class = as.numeric(str_extract(Class, "\\d+")))
 
 #Find unique matches between pre and post 
-merged_df <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", "Father's highest level of education", "Mother's highest level of education"), suffixes = c("_pre", "_post"))
+merged_df <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
+                                           "Father's highest level of education", "Mother's highest level of education",
+                                           "father_occupation_type","mother_occupation_type",
+                                           "Father's occupation", "Mother's occupation"), 
+                   suffixes = c("_pre", "_post"))
 # Select only the student_ID columns
-result_df <- merged_df[, c("Student_ID_pre", "Student_ID_post")]
-
-#merge datasets, matching participants 
-colnames(df_pre)[c(12:40)] <- paste0("Pre_", colnames(df_pre)[c(12:40)])
-colnames(df_post)[c(10:38)] <- paste0("Post_", colnames(df_post)[c(10:38)])
+result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
 
 
-df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
-                                         "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
+#df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
+  #                                       "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
 
