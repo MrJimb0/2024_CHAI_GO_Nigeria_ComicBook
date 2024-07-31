@@ -56,17 +56,10 @@ rivers_post = bind_rows(rivers_post, .id="School")
 
 df_post = bind_rows(FCT_post, kaduna_post, lagos_post, rivers_post)
 
-df_total = merge(df_pre, df_post, by.x=c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
-                              "Father's occupation", "Mother's occupation", "State", "LGA", "School"), 
-      by.y=c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
-             "Father's occupation", "Mother's occupation", "State", "LGA", "School"))
+#merge datasets, matching participants 
+colnames(df_pre)[c(12:40)] <- paste0("Pre_", colnames(df_pre)[c(12:40)])
+colnames(df_post)[c(10:38)] <- paste0("Post_", colnames(df_post)[c(10:38)])
 
-colnames(df_pre)[c(11:39)] <- paste0("Pre_", colnames(df_pre)[c(11:39)])
-colnames(df_post)[c(9:37)] <- paste0("Post_", colnames(df_post)[c(9:37)])
-df_total <- bind_rows(df_pre, df_post)
-
-df_total <- df_total %>%
-  group_by("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
-           "Father's occupation", "Mother's occupation", "State", "LGA", "School") 
-
+df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
+                                         "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
 
