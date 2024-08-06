@@ -79,8 +79,7 @@ df_post <- df_post %>%
 #Find unique matches between pre and post 
 merged_df <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
                                            "Father's highest level of education", "Mother's highest level of education",
-                                           "father_occupation_type","mother_occupation_type",
-                                           "Father's occupation", "Mother's occupation"), 
+                                           "father_occupation_type","mother_occupation_type"), 
                    suffixes = c("_pre", "_post"))
 # Select only the student_ID columns
 result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
@@ -88,4 +87,38 @@ result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post
 
 #df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
   #                                       "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
+
+#get student survey scores 
+df_pre$Q1 <- +(df_pre$"What role do white blood cells play in the immune system?" == "Fighting off what makes you sick")
+df_pre$Q2 <- +(df_pre$"Have you heard of the human papillomavirus (HPV)?" == "Yes")
+df_pre$Q3 <- +(df_pre$"What is HPV" == "A virus")
+df_pre$Q4 <- +(df_pre$"Is HPV a virus that can cause cervical cancer?" == "Yes")
+df_pre$Q5 <- +(df_pre$"Who is at risk of cervical cancer" == "Female")
+df_pre$Q6 <- +(df_pre$"Which age group is the target for the HPV vaccine in Nigeria?" == "9-14 years")
+df_pre$Q7 <- +(df_pre$"Which of the following cannot cause cancer" == "Bad juju")
+df_pre$Q8 <- +(df_pre$"Do you think it's safe to get vaccinated?" == "Yes")
+df_pre$Q9 <- +(df_pre$"Is HPV screening/testing required even if you have been vaccinated against HPV?" == "Yes")
+df_pre$Q10 <- +(df_pre$"Can you talk to your friends about cervical cancer and HPV?" == "Yes")
+df_pre$Q11 <- +(df_pre$"Can you be an advocate for cervical cancer and the HPV vaccine?" == "Yes")
+    ## unsure about adding "scores" for options of where you can get vaccinated 
+df_pre$survey_score <- rowSums(df_pre[48:57], na.rm=T)
+
+df_post$Q1 <- +(df_post$"What role do white blood cells play in the immune system?" == "Fighting off what makes you sick")
+df_post$Q2 <- +(df_post$"Have you heard of the human papillomavirus (HPV)?" == "Yes")
+df_post$Q3 <- +(df_post$"What is HPV" == "A virus")
+df_post$Q4 <- +(df_post$"Is HPV a virus that can cause cervical cancer?" == "Yes")
+df_post$Q5 <- +(df_post$"Who is at risk of cervical cancer" == "Female")
+df_post$Q6 <- +(df_post$"Which age group is the target for the HPV vaccine in Nigeria?" == "9-14 years")
+df_post$Q7 <- +(df_post$"Which of the following cannot cause cancer" == "Bad juju")
+df_post$Q8 <- +(df_post$"Do you think it's safe to get vaccinated?" == "Yes")
+  #error in Q8 for some reason 
+df_post$Q9 <- +(df_post$"Is HPV screening/testing required even if you have been vaccinated against HPV?" == "Yes")
+df_post$Q10 <- +(df_post$"Can you talk to your friends about cervical cancer and HPV?" == "Yes")
+df_post$Q11 <- +(df_post$"Can you be an advocate for cervical cancer and the HPV vaccine?" == "Yes")
+df_post$survey_score <- rowSums(df_post[44:53], na.rm=T)
+
+#save dfs as CSV 
+write.csv(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")
+write.csv(df_pre, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.csv")
+write.csv(df_total, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.csv")
 
