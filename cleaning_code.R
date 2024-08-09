@@ -60,19 +60,17 @@ df_post = bind_rows(FCT_post, kaduna_post, lagos_post, rivers_post)
 
 df_pre <- df_pre %>% 
   mutate(Student_ID = as.numeric(`Student #`)) %>% 
-  select(-`Student #`)
+  dplyr::select(-`Student #`)
+df_pre <- df_pre %>% 
+  mutate(Age = as.numeric(str_extract(Age, "\\d+")))
+df_pre <- df_pre %>% 
+  mutate(Class = as.numeric(str_extract(Class, "\\d+")))
 
 df_post <- df_post %>% 
   mutate(Student_ID = as.numeric(`Student #`)) %>% 
-  select(-`Student #`)
-
-df_pre <- df_pre %>% 
-  mutate(Age = as.numeric(str_extract(Age, "\\d+")))
+  dplyr::select(-`Student #`)
 df_post <- df_post %>% 
   mutate(Age = as.numeric(str_extract(Age, "\\d+")))
-
-df_pre <- df_pre %>% 
-  mutate(Class = as.numeric(str_extract(Class, "\\d+")))
 df_post <- df_post %>% 
   mutate(Class = as.numeric(str_extract(Class, "\\d+")))
 

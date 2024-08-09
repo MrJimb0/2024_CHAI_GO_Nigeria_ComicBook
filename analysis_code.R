@@ -1,7 +1,7 @@
 #Analysis code
 #Authors: Nicole Kim, BS and James Dickerson, MD MS 
 
-library(dplyr)
+library(tidyverse)
 library(stargazer)
 library(car)
 library(lmerTest)
@@ -12,42 +12,63 @@ df_total <- read.csv("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBo
 df_pre <- read.csv("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.csv")
 df_post <- read.csv("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")
 
-#t tests 
-fct <- filter(df_total, State == "FCT")
-kaduna <- filter(df_total, State == "Kaduna")
-rivers <- filter(df_total, State == "Rivers")
-lagos <- filter(df_total, State == "Lagos")
+#t tests -- change in survey score pre and post intervention 
+score_change <- t.test(df_post$survey_score, df_pre$survey_score)
 
-t_test_data <- data.frame(state = c("fct", "kaduna", "rivers", "lagos"),
-                          pre_score_mean = c(mean(fct$survey_score_pre, na.rm = TRUE),
-                                             mean(kaduna$survey_score_pre, na.rm = TRUE),
-                                             mean(rivers$survey_score_pre, na.rm = TRUE),
-                                             mean(lagos$survey_score_pre, na.rm = TRUE)
-                                             ),
-                  post_score_mean = c(mean(fct$survey_score_post, na.rm = TRUE),
-                                      mean(kaduna$survey_score_post, na.rm = TRUE),
-                                      mean(rivers$survey_score_post, na.rm = TRUE),
-                                      mean(lagos$survey_score_post, na.rm = TRUE)
-                                      ),
-                  vax_status_pre = c(sum(fct$vaccination_status_pre, na.rm = TRUE),
-                                     sum(kaduna$vaccination_status_pre, na.rm = TRUE),
-                                     sum(rivers$vaccination_status_pre, na.rm = TRUE),
-                                     sum(lagos$vaccination_status_pre, na.rm = TRUE)
-                                     ),
-                  vax_status_post = c(sum(fct$vaccination_status_post, na.rm = TRUE),
-                                      sum(kaduna$vaccination_status_post, na.rm = TRUE),
-                                      sum(rivers$vaccination_status_post, na.rm = TRUE),
-                                      sum(lagos$vaccination_status_post, na.rm = TRUE)
-                                      )
-                  )
+score_change_fct <- t.test(df_post[df_post$State == "FCT",]$survey_score, 
+                       df_pre[df_pre$State == "FCT",]$survey_score)
+score_change_kaduna <- t.test(df_post[df_post$State == "Kaduna",]$survey_score, 
+                       t_test_pre[df_pre$State == "Kaduna",]$survey_score)
+score_change_rivers <- t.test(df_post[df_post$State == "Rivers",]$survey_score, 
+                              df_pre[df_pre$State == "Rivers",]$survey_score)
+score_change_lagos <- t.test(df_post[df_post$State == "Lagos",]$survey_score, 
+                              df_pre[df_pre$State == "Lagos",]$survey_score)
 
-t_test_fct <- df_pre %>% select(c(fct$survey_score_post, fct$survey_score_pre))
-fct_post <- filter(df_post, State == "FCT")
+score_change_jss1 <- t.test(df_post[df_post$Class == 1,]$survey_score, 
+                       df_pre[df_pre$Class == 1,]$survey_score)
+score_change_jss2 <- t.test(df_post[df_post$Class == 2,]$survey_score, 
+                       t_test_pre[df_pre$Class == 2,]$survey_score)
+score_change_jss3 <- t.test(df_post[df_post$Class == 3,]$survey_score, 
+                              df_pre[df_pre$Class == 3,]$survey_score)
+#I don't think there are any SSS1 students in our dataset 
+score_change_sss1 <- t.test(df_post[df_post$Class == 4,]$survey_score, 
+                              df_pre[df_pre$Class == 4,]$survey_score)
 
-score_change <- t.test(t_test_data[state=fct]$pre_score_mean, t_test_data[state=fct]$post_score_mean)
+score_change_10y <- t.test(df_post[df_post$Age == 10,]$survey_score, 
+                            df_pre[df_pre$Age == 10,]$survey_score)
+score_change_11y <- t.test(df_post[df_post$Age == 11,]$survey_score, 
+                            t_test_pre[df_pre$Age == 11,]$survey_score)
+score_change_12y <- t.test(df_post[df_post$Age == 12,]$survey_score, 
+                            df_pre[df_pre$Age == 12,]$survey_score)
+score_change_13y <- t.test(df_post[df_post$Age == 13,]$survey_score, 
+                           df_pre[df_pre$Age == 13,]$survey_score)
+score_change_14y <- t.test(df_post[df_post$Age == 14,]$survey_score, 
+                           t_test_pre[df_pre$Age == 14,]$survey_score)
 
+#t-tests -- change in vaccination status pre and post intervention
+vax_change <- t.test(df_post$vaccination_status, df_pre$vaccination_status)
 
+vax_fct <- t.test(df_post[df_post$State == "FCT",]$vaccination_status, 
+                           df_pre[df_pre$State == "FCT",]$vaccination_status)
+vax_kaduna <- t.test(df_post[df_post$State == "Kaduna",]$vaccination_status, 
+                              t_test_pre[df_pre$State == "Kaduna",]$vaccination_status)
+vax_rivers <- t.test(df_post[df_post$State == "Rivers",]$vaccination_status, 
+                              df_pre[df_pre$State == "Rivers",]$vaccination_status)
+vax_lagos <- t.test(df_post[df_post$State == "Lagos",]$vaccination_status, 
+                             df_pre[df_pre$State == "Lagos",]$vaccination_status)
 
+vax_numbers <- data.frame(state = c("FCT", "Kaduna", "Rivers", "Lagos"), 
+                          vaccinated_pre = c(sum(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                             sum(df_pre[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                             sum(df_pre[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                             sum(df_pre[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE)),
+                          vaccinated_Post = c(sum(df_post[df_post$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                              sum(df_post[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                              sum(df_post[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                              sum(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE))
+    )
+
+#mixed effects 
 model1 <- lmer(survey_score_post ~ survey_score_pre + (1 | State), data = df_total)
 summary(model1)
 
