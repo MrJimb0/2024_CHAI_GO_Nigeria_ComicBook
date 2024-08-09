@@ -88,14 +88,6 @@ df_post$student_confidence [df_post$"If asked to speak to your friends about cer
 df_post$student_confidence [df_post$"If asked to speak to your friends about cervical cancer and the HPV vaccine at the school assembly, how would you rate yourself on a scale of 1-5?" == "4 - Fairly confident"] = 4
 df_post$student_confidence [df_post$"If asked to speak to your friends about cervical cancer and the HPV vaccine at the school assembly, how would you rate yourself on a scale of 1-5?" == "5 - Very confident"] = 5
 
-#Find unique matches between pre and post 
-merged_df <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
-                                           "Father's highest level of education", "Mother's highest level of education",
-                                           "father_occupation_type","mother_occupation_type"), 
-                   suffixes = c("_pre", "_post"))
-# Select only the student_ID columns
-result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
-
 
 #df_total = merge(df_pre, df_post, by = c("Class", "Age", "Religion", "Father's highest level of education", "Mother's highest level of education",
   #                                       "Father's occupation", "Mother's occupation", "State", "LGA", "School"), all = TRUE)
@@ -127,6 +119,31 @@ df_post$Q9 <- +(df_post$"Is HPV screening/testing required even if you have been
 df_post$Q10 <- +(df_post$"Can you talk to your friends about cervical cancer and HPV?" == "Yes")
 df_post$Q11 <- +(df_post$"Can you be an advocate for cervical cancer and the HPV vaccine?" == "Yes")
 df_post$survey_score <- rowSums(df_post[46:55], na.rm=T)
+
+df_pre$vaccination_status <- +(df_pre$"Have you received the HPV vaccine?" == "Yes")
+df_post$vaccination_status <- +(df_post$"Have you received the HPV vaccine?" == "Yes")
+
+df_pre <- df_pre %>% 
+  rename(
+    father_education = "Father's highest level of education",
+    mother_education = "Mother's highest level of education", 
+    father_occupation = "Father's occupation",
+    mother_occupation = "Mother's occupation")
+
+df_post <- df_post %>% 
+  rename(
+    father_education = "Father's highest level of education",
+    mother_education = "Mother's highest level of education", 
+    father_occupation = "Father's occupation",
+    mother_occupation = "Mother's occupation")
+
+#Find unique matches between pre and post 
+df_total_paired <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
+                                           "father_education", "mother_education",
+                                           "father_occupation", "mother_occupation"), 
+                   suffixes = c("_pre", "_post"), all = TRUE)
+# Select only the student_ID columns
+result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
 
 #save dfs as CSV 
 write.csv(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")
