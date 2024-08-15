@@ -102,8 +102,14 @@ df_pre$Q8 <- +(df_pre$"Do you think it's safe to get vaccinated?" == "Yes")
 df_pre$Q9 <- +(df_pre$"Is HPV screening/testing required even if you have been vaccinated against HPV?" == "Yes")
 df_pre$Q10 <- +(df_pre$"Can you talk to your friends about cervical cancer and HPV?" == "Yes")
 df_pre$Q11 <- +(df_pre$"Can you be an advocate for cervical cancer and the HPV vaccine?" == "Yes")
-    ## unsure about adding "scores" for options of where you can get vaccinated 
-df_pre$survey_score <- rowSums(df_pre[49:58], na.rm=T)
+df_pre$Q12a <- +(df_pre$"You can get vaccinated with HPV at: Health centre" == "Yes")
+df_pre$Q12b <- +(df_pre$"You can get vaccinated with HPV at: School" == "Yes")
+df_pre$Q12c <- +(df_pre$"You can get vaccinated with HPV at: Mobile vaccination units" == "Yes")
+df_pre$Q12d <- +(df_pre$"You can get vaccinated with HPV at: Religious houses" == "Yes")
+df_pre$Q12e <- +(df_pre$"You can get vaccinated with HPV at: All of the above" == "Yes")
+
+df_pre$survey_score <- rowSums(df_pre[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
+
 
 df_post$Q1 <- +(df_post$"What role do white blood cells play in the immune system?" == "Fighting off what makes you sick")
 df_post$Q2 <- +(df_post$"Have you heard of the human papillomavirus (HPV)?" == "Yes")
@@ -116,7 +122,13 @@ df_post$Q8 <- +(df_post$"Do you think it's safe to get vaccinated?" == "Yes")
 df_post$Q9 <- +(df_post$"Is HPV screening/testing required even if you have been vaccinated against HPV?" == "Yes")
 df_post$Q10 <- +(df_post$"Can you talk to your friends about cervical cancer and HPV?" == "Yes")
 df_post$Q11 <- +(df_post$"Can you be an advocate for cervical cancer and the HPV vaccine?" == "Yes")
-df_post$survey_score <- rowSums(df_post[46:55], na.rm=T)
+df_post$Q12a <- +(df_post$"You can get vaccinated with HPV at: Health centre" == "Yes")
+df_post$Q12b <- +(df_post$"You can get vaccinated with HPV at: School" == "Yes")
+df_post$Q12c <- +(df_post$"You can get vaccinated with HPV at: Mobile vaccination units" == "Yes")
+df_post$Q12d <- +(df_post$"You can get vaccinated with HPV at: Religious houses" == "Yes")
+df_post$Q12e <- +(df_post$"You can get vaccinated with HPV at: All of the above" == "Yes")
+
+df_post$survey_score <- rowSums(df_post[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
 
 df_pre$vaccination_status <- +(df_pre$"Have you received the HPV vaccine?" == "Yes")
 df_post$vaccination_status <- +(df_post$"Have you received the HPV vaccine?" == "Yes")
@@ -136,12 +148,13 @@ df_post <- df_post %>%
     mother_occupation = "Mother's occupation")
 
 #Find unique matches between pre and post 
-df_total_paired <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
+df_total <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
                                            "father_education", "mother_education",
                                            "father_occupation", "mother_occupation"), 
                    suffixes = c("_pre", "_post"), all = TRUE)
+
 # Select only the student_ID columns
-result_df <- merged_df[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
+result_df <- df_total[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
 
 #save dfs as CSV 
 write.csv(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")

@@ -6,6 +6,7 @@ library(stargazer)
 library(car)
 library(lmerTest)
 library(performance)
+library(ggplot2)
 
 setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook")
 df_total <- read.csv("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.csv")
@@ -68,11 +69,19 @@ vax_numbers <- data.frame(state = c("FCT", "Kaduna", "Rivers", "Lagos"),
                                               sum(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE))
     )
 
+
 #mixed effects 
-model1 <- lmer(survey_score_post ~ survey_score_pre + (1 | State), data = df_total)
+model1 <- lmer(survey_score_pre ~ survey_score_post + (1 | State), data = df_total)
+#model1 <- lmer(df_post$survey_score ~ df_pre$survey_score + (1 | State), data = df_post, df_pre)
 summary(model1)
+df_total$ME1_fit <- predict(model1)
 
 model2 <- lmer(survey_score_post ~ survey_score_pre + mother_education + (1 | State), data = df_total) 
 summary(model2)
+df_total$ME2_fit <- predict(model2)
 
-stargazer(model1)
+
+#anova 
+model3 <- aov(survey_score_post ~ survey_score_pre + State, data = df_total)
+summary(model3)
+df_total$AOV_fit <- predict(model1)
