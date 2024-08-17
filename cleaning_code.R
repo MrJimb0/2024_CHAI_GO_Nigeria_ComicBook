@@ -7,6 +7,7 @@ setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_")
 
 library(tidyverse)
 library(readxl)
+library(writexl)
 
 #Import the raw data from excel and format into a pre- and post- DF
 #Pre-intervention responses df
@@ -105,7 +106,7 @@ df_pre$Q11 <- +(df_pre$"Can you be an advocate for cervical cancer and the HPV v
 df_pre$Q12a <- +(df_pre$"You can get vaccinated with HPV at: Health centre" == "Yes")
 df_pre$Q12b <- +(df_pre$"You can get vaccinated with HPV at: School" == "Yes")
 df_pre$Q12c <- +(df_pre$"You can get vaccinated with HPV at: Mobile vaccination units" == "Yes")
-df_pre$Q12d <- +(df_pre$"You can get vaccinated with HPV at: Religious houses" == "Yes")
+df_pre$Q12d <- +(df_pre$"You can get vaccinated with HPV at: Religious homes" == "Yes")
 df_pre$Q12e <- +(df_pre$"You can get vaccinated with HPV at: All of the above" == "Yes")
 
 df_pre$survey_score <- rowSums(df_pre[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
@@ -125,7 +126,7 @@ df_post$Q11 <- +(df_post$"Can you be an advocate for cervical cancer and the HPV
 df_post$Q12a <- +(df_post$"You can get vaccinated with HPV at: Health centre" == "Yes")
 df_post$Q12b <- +(df_post$"You can get vaccinated with HPV at: School" == "Yes")
 df_post$Q12c <- +(df_post$"You can get vaccinated with HPV at: Mobile vaccination units" == "Yes")
-df_post$Q12d <- +(df_post$"You can get vaccinated with HPV at: Religious houses" == "Yes")
+df_post$Q12d <- +(df_post$"You can get vaccinated with HPV at: Religious homes" == "Yes")
 df_post$Q12e <- +(df_post$"You can get vaccinated with HPV at: All of the above" == "Yes")
 
 df_post$survey_score <- rowSums(df_post[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
@@ -160,4 +161,8 @@ result_df <- df_total[, c("State", "School", "Student_ID_pre", "Student_ID_post"
 write.csv(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")
 write.csv(df_pre, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.csv")
 write.csv(df_total, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.csv")
+
+write_xlsx(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.xlsx")
+write_xlsx(df_pre, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.xlsx")
+write_xlsx(df_total, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.xlsx")
 
