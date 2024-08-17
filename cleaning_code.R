@@ -2,8 +2,8 @@
 #Authors: Nicole Kim, BS and James Dickerson, MD MS 
 
 options(scipen=999)
-#setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Folders from Nicole 7:30:24")
-setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
+setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
+#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
 
 library(tidyverse)
 library(readxl)
@@ -157,12 +157,7 @@ df_total <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Reli
 # Select only the student_ID columns
 result_df <- df_total[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
 
-#save dfs as CSV 
-write.csv(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.csv")
-write.csv(df_pre, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.csv")
-write.csv(df_total, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.csv")
-
-write_xlsx(df_post, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.xlsx")
-write_xlsx(df_pre, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.xlsx")
-write_xlsx(df_total, "/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.xlsx")
-
+# Save dfs as excel files to wd  
+write_xlsx(df_post, "df_post_cleaned.xlsx")
+write_xlsx(df_pre, "df_pre_cleaned.xlsx")
+write_xlsx(df_total, "df_total_cleaned.xlsx")
