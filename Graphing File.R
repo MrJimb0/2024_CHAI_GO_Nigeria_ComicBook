@@ -63,34 +63,28 @@ ggplot(vax_numbers_long, aes(x = state, y = vaccinations, fill = time)) +
 #Plots used for the modeling 
 
 #As expected, there is a positive linear relationship between pre and post test score
-ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post)) +
+ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_size)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   theme_minimal() + 
+  scale_x_continuous(limits = c(2, 7)) +
+  scale_y_continuous(limits = c(2, 7)) +
   labs(title = "Pre-test vs Post-test Mean Scores", x = "Pre-test Mean Score", y = "Post-test Mean Score")
 
 #Plot them by state. Suggests that we should be using random intercepts, as expected
-ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, color = State)) +
+ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, color = State, size = class_size)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   theme_minimal() + 
+  scale_x_continuous(limits = c(2, 7)) +
+  scale_y_continuous(limits = c(2, 7)) +
   labs(title = "Relationship Between Pre-test and Post-test Mean Scores by State",
        subtitle = "Color-coded by State",
        x = "Pre-test Mean Score",
        y = "Post-test Mean Score")
 
-# Change the title and labels to accurately reflect the x-axis variable
-ggplot(df_condensed, aes(x = mean_score_post, y = change_vaccination_status, color = State)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  theme_minimal() + 
-  labs(title = "Relationship Between Post-test Mean Scores and Change in Vaccination Status by State",
-       subtitle = "Color-coded by State",
-       x = "Post-test Mean Score",
-       y = "Change in Vaccination Status (%)")
-
-# Change the title and labels to accurately reflect the x-axis variable
-ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status)) +
+# Linear relationship seen 
+ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status, size = class_size)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   theme_minimal() + 
@@ -98,10 +92,20 @@ ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status)) +
        x = "Change in Mean Score",
        y = "Change in Vaccination Status (%)")
 
-# Change the title and labels to accurately reflect the x-axis variable
-ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status, color = State)) +
+#Wierd negative value. will discuss w Praise
+ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status, color = State, size = class_size)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() + 
+  labs(title = "Relationship Between Change in Mean Scores and Change in Vaccination Status by State",
+       subtitle = "Color-coded by State",
+       x = "Change in Mean Score",
+       y = "Change in Vaccination Status (%)")
+
+#Remove the outlier
+ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status, color = State, size = class_size)) +
+  geom_point(data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0)) +
+  geom_smooth(method = "lm", se = FALSE, data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0)) +
   theme_minimal() + 
   labs(title = "Relationship Between Change in Mean Scores and Change in Vaccination Status by State",
        subtitle = "Color-coded by State",

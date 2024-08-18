@@ -119,6 +119,8 @@ pre_post_test_scores_by_state_school_class <- rbind(
 
 kable(pre_post_test_scores_by_state_school_class, digits = 2)
 
+pre_post_test_scores_by_state_school_class$`N_Post-test`
+
 #Now, we want to look at the relationship between parental education and pre-test score both for mom and dad 
               
               #@ Nicole [enter code here :) ] stratify by state and then graph in the graphing file
@@ -204,7 +206,7 @@ vax_numbers <- data.frame(
 kable(vax_numbers, digits = 2, caption = "Vaccination Numbers by State")
 kable(vax_results_df, digits = 2, caption = "Proportion Test Results")
 
-#Because we need to pivot this df, this ggplot is here
+#Set up ggplot by creating long form file
 vax_numbers_long <- vax_numbers %>%
   pivot_longer(cols = c(vaccinated_pre, vaccinated_post), names_to = "time", values_to = "vaccinations")
 write_xlsx(vax_numbers_long, "vax_numbers_long.xlsx")
@@ -218,37 +220,62 @@ write_xlsx(vax_numbers_long, "vax_numbers_long.xlsx")
 
 #Mixed effects Models
 
+#Set up of a condensed df. Decided to condense at the level of the class as that is the smallest unit we have 
+
 #Because of the inconsistently in the classes being reported, will start with class but may change to school as the unit of collapse (see line 96)
+#Lets do means of the scores for each class and add that to our condensed df 
 pre_score_mean <- df_pre %>% group_by(State, School, Class) %>% summarise(mean_score_pre = mean(survey_score))
 post_score_mean <- df_post %>% group_by(State,School,Class) %>% summarise(mean_score_post = mean(survey_score))
 df_condensed <- merge(pre_score_mean, post_score_mean, by=c("State", "School", "Class"), all = TRUE)
+
+#We will also look at the change in vaccination status. we know that Rivers/Kaduna had no vaccine prior to the intervention
+#So any NAs can be changed to 0 for pre
 df_pre_vaccination <- df_pre %>% group_by(State, School, Class) %>% summarise(pre_vaccination_status = mean(vaccination_status))
 df_post_vaccination <- df_post %>% group_by(State, School, Class) %>% summarise(post_vaccination_status = mean(vaccination_status))
+
 df_condensed <- merge(df_condensed, df_pre_vaccination, by=c("State", "School", "Class"), all = TRUE)
 df_condensed <- merge(df_condensed, df_post_vaccination, by=c("State", "School", "Class"), all = TRUE)
+
+df_condensed <- df_condensed %>%
+  mutate(pre_vaccination_status = ifelse(State %in% c("Rivers", "Kaduna") & is.na(pre_vaccination_status), 0, pre_vaccination_status))
+
 df_condensed <- df_condensed %>%
   mutate(pre_vaccination_status = pre_vaccination_status * 100,
          post_vaccination_status = post_vaccination_status * 100,
          change_vaccination_status = post_vaccination_status - pre_vaccination_status)
-df_condensed <- df_condensed %>%
-  mutate(pre_vaccination_status = ifelse(State %in% c("Rivers", "Kaduna") & is.na(pre_vaccination_status), 0, pre_vaccination_status))
+
+
+#Now we want to generate a ∆ score 
 df_condensed <- df_condensed %>%
   mutate(change_score = mean_score_post - mean_score_pre)
 
+#Lastly we add in the number of surveyed kids per class. Because the numbers were different each time, we took an average
+#of the number pre and post 
+df_condensed <- df_condensed %>%
+  left_join(pre_post_test_scores_by_state_school_class, by = c("State", "School", "Class")) 
 
+#Lastly, rename these to make the rowMeans function easier to use 
+df_condensed$n_pretest <- df_condensed$`N_Pre-test`
+df_condensed$n_posttest <- df_condensed$`N_Post-test`
+df_condensed$class_size <- rowMeans(df_condensed[, c("n_pretest", "n_posttest")], na.rm = TRUE)
+
+#Write it for graphing
 write_xlsx(df_condensed, "df_condensed.xlsx")
 
 #See graphs for visual representaiton, non-sig linear relationship for total dataset, when random intercept for state then we see a significant effect
-model1 <- glm(mean_score_post ~ mean_score_pre, data = df_condensed)
-model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condensed)
+model1 <- glm(mean_score_post ~ mean_score_pre, data = df_condensed, weights = class_size)
+model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model1)
 summary(model2)
 
 #Now we ask if change in the score is predictive of change in vaccination status
 #Will need to talk about these
-model3 <- glm(change_vaccination_status ~ change_score, data = df_condensed)
-model4 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed)
+model3 <- glm(change_vaccination_status ~ change_score, data = df_condensed, weights = class_size)
+model4 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
 summary(model3)
 summary(model4)
-#More
-
+#Re-run model 4 with the -22% removed
+model4v2 <- lmer(change_vaccination_status ~ change_score + (1 | State), 
+               data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
+               weights = class_size)
+summary(model4v2)
