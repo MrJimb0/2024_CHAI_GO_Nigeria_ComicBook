@@ -152,19 +152,24 @@ kable(pre_post_test_scores_by_state_school_class, digits = 2)
 pre_post_test_scores_by_state_school_class$`N_Post-test`
 
 #Now, we want to look at the relationship between parental education and pre-test score both for mom and dad 
-              
-              #@ Nicole [enter code here :) ] stratify by state and then graph in the graphing file
-#ignore NA values 
-father_edu_vs_pre_test_score <- df_pre %>%
+  #NA answers for parent education were not counted  
+father_edu_vs_pre_test_score <- df_pre %>% 
+  filter(!is.na(father_education)) %>%
   group_by(State, father_education) %>%
-  summarize(mean=mean(survey_score, na.rm=TRUE))
-            
+  summarize(mean = mean(survey_score, na.rm=TRUE), sd = sd(survey_score, na.rm=TRUE))
+father_edu_vs_pre_test_score$parent <- "father"
+father_edu_vs_pre_test_score <- father_edu_vs_pre_test_score %>% rename(edu_level = father_education)
+     
 mother_edu_vs_pre_test_score <- df_pre %>%
+  filter(!is.na(mother_education)) %>%
   group_by(State, mother_education) %>%
-  summarize(mean=mean(survey_score, na.rm=TRUE))
-            
-parent_edu_vs_pre_test_score
+  summarize(mean = mean(survey_score, na.rm=TRUE), sd = sd(survey_score, na.rm=TRUE))
+mother_edu_vs_pre_test_score$parent <- "mother"
+mother_edu_vs_pre_test_score <- mother_edu_vs_pre_test_score %>% rename(edu_level = mother_education)
 
+parent_edu_vs_pre_test_score <- rbind(mother_edu_vs_pre_test_score, father_edu_vs_pre_test_score)
+df_edu <- parent_edu_vs_pre_test_score
+            
 #Next, we do a bunch of t tests. All are significant with improvements in scores 
 t_tests <- list(
   FCT = tidy(t.test(df_post[df_post$State == "FCT",]$survey_score, df_pre[df_pre$State == "FCT",]$survey_score)),
@@ -300,7 +305,8 @@ df_condensed$class_size <- rowMeans(df_condensed[, c("n_pretest", "n_posttest")]
 #Write it for graphing
 write_xlsx(df_condensed, "df_condensed.xlsx")
 
-#See graphs for visual representaiton, non-sig linear relationship for total dataset, when random intercept for state then we see a significant effect
+#See graphs for visual representaiton, non-sig linear relationship for total dataset, 
+  #when random intercept for state then we see a significant effect
 model1 <- glm(mean_score_post ~ mean_score_pre, data = df_condensed, weights = class_size)
 model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model1)
@@ -317,3 +323,4 @@ model4v2 <- lmer(change_vaccination_status ~ change_score + (1 | State),
                data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
                weights = class_size)
 summary(model4v2)
+
