@@ -14,15 +14,45 @@ library(broom)
 library(ggplot2)
 library(writexl)
 
-setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
-#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook")
+#setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
+setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook")
 
-df_total <- read_xlsx("df_total_cleaned.xlsx")
-df_pre <- read_xlsx("df_pre_cleaned.xlsx")
-df_post <- read_xlsx("df_post_cleaned.xlsx")
+df_total <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_total_cleaned.xlsx")
+df_pre <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.xlsx")
+df_post <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.xlsx")
 
 #Summary statistics For Tables 
                       #@ Nicole [enter code here :) ]
+ 
+summary_pre <- df_pre %>% group_by(State) %>%
+  summarize(mean_score_pre = mean(survey_score, na.rm=TRUE),
+            sd_score_pre = sd(survey_score, na.rm=TRUE))
+summary_post <- df_post %>% group_by(State) %>%
+  summarize(mean_score_post = mean(survey_score, na.rm = TRUE),
+            sd_score_post = sd(survey_score, na.rm = TRUE))
+summary_n <- data.frame(State = c("FCT", "Kaduna", "Rivers", "Lagos"),
+             n_students_pre = c(nrow(df_pre[df_pre$State == "FCT",]), nrow(df_pre[df_pre$State == "Kaduna",]), 
+                                 nrow(df_pre[df_pre$State == "Rivers",]), nrow(df_pre[df_pre$State == "Lagos",])), 
+             n_students_post = c(nrow(df_post[df_post$State == "FCT",]), nrow(df_post[df_post$State == "Kaduna",]), 
+                                  nrow(df_post[df_post$State == "Rivers",]), nrow(df_post[df_post$State == "Lagos",])),
+             n_schools = c(2,2,4,2),
+             n_base_vaxed = c(sum(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm = TRUE), 
+                              sum(df_pre[df_pre$State == "Kaduna",]$vaccination_status, na.rm = TRUE),
+                              sum(df_pre[df_pre$State == "Rivers",]$vaccination_status, na.rm = TRUE), 
+                              sum(df_pre[df_pre$State == "Lagos",]$vaccination_status, na.rm = TRUE))
+             )  
+summary_stats <- summary_pre %>%
+  left_join(summary_post, by = c("State")) %>% 
+  left_join(summary_n, by = c("State"))
+
+summary_stats <- rbind(summary_stats, 
+                 data.frame(State = c("total"), mean_score_pre = c(mean(df_pre$survey_score)), sd_score_pre = c(sd(df_pre$survey_score)),
+                            mean_score_post = c(mean(df_post$survey_score)), sd_score_post = c(sd(df_post$survey_score)), 
+                            n_students_pre = c(nrow(df_pre)), n_students_post = c(nrow(df_post)), n_schools = c(10), 
+                            n_base_vaxed = c(sum(df_pre$vaccination_status, na.rm = TRUE))
+                            ))
+print(summary_stats)
+#Kaduna/Rivers should have 0 vaccinated at baseline but don't
 
 #Overall T test showing improvement in test scores for everyone
 overall_t <- (t.test(df_post$survey_score, df_pre$survey_score))
@@ -124,8 +154,16 @@ pre_post_test_scores_by_state_school_class$`N_Post-test`
 #Now, we want to look at the relationship between parental education and pre-test score both for mom and dad 
               
               #@ Nicole [enter code here :) ] stratify by state and then graph in the graphing file
-
-
+#ignore NA values 
+father_edu_vs_pre_test_score <- df_pre %>%
+  group_by(State, father_education) %>%
+  summarize(mean=mean(survey_score, na.rm=TRUE))
+            
+mother_edu_vs_pre_test_score <- df_pre %>%
+  group_by(State, mother_education) %>%
+  summarize(mean=mean(survey_score, na.rm=TRUE))
+            
+parent_edu_vs_pre_test_score
 
 #Next, we do a bunch of t tests. All are significant with improvements in scores 
 t_tests <- list(
