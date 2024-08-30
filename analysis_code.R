@@ -13,6 +13,7 @@ library(knitr)
 library(broom)
 library(ggplot2)
 library(writexl)
+library(table1)
 
 #setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
 setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook")
@@ -22,7 +23,6 @@ df_pre <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBoo
 df_post <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.xlsx")
 
 #Summary statistics For Tables 
-                      #@ Nicole [enter code here :) ]
  
 summary_pre <- df_pre %>% group_by(State) %>%
   summarize(mean_score_pre = mean(survey_score, na.rm=TRUE),
@@ -312,15 +312,34 @@ model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condens
 summary(model1)
 summary(model2)
 
+model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
+summary(model3)$r.squared
+ggplot(df_condensed, aes(x = mean_score_pre, y = change_score)) + 
+  geom_point() + 
+  labs(x = "Mean Score Pre", 
+       y = "Change Score") + 
+  theme_classic()
+
 #Now we ask if change in the score is predictive of change in vaccination status
 #Will need to talk about these
-model3 <- glm(change_vaccination_status ~ change_score, data = df_condensed, weights = class_size)
-model4 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
-summary(model3)
+model4 <- glm(change_vaccination_status ~ change_score, data = df_condensed, weights = class_size)
+model5 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
 summary(model4)
+summary(model5)
 #Re-run model 4 with the -22% removed
-model4v2 <- lmer(change_vaccination_status ~ change_score + (1 | State), 
+model5v2 <- lmer(change_vaccination_status ~ change_score + (1 | State), 
                data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
                weights = class_size)
-summary(model4v2)
+summary(model5v2)
+
+#tables for export
+library(gtsummary)
+library(table1)
+
+#need to add edu/occupation info to table
+summary_table <- table1(~mean_score_pre + mean_score_post + n_posttest | State, data=df_condensed, miss = 0)
+summary_df <- as.data.frame(summary_table)
+write_xlsx(summary_df, path = "summary_table.xlsx")
+
+tbl_regression(model3, exponentiate = TRUE)
 
