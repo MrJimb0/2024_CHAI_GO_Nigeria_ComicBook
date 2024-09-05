@@ -302,6 +302,22 @@ df_condensed$n_pretest <- df_condensed$`N_Pre-test`
 df_condensed$n_posttest <- df_condensed$`N_Post-test`
 df_condensed$class_size <- rowMeans(df_condensed[, c("n_pretest", "n_posttest")], na.rm = TRUE)
 
+#add parent education to condensed data 
+#only did parent edu for kids who took survey at endline. could change to baseline or include both 
+df_post$mother_college <- ifelse(df_post$mother_education == "Bachelor's degree" | df_post$mother_education == "Postgraduate", 
+                                1, 0)
+df_post$father_college <- ifelse(df_post$father_education == "Bachelor's degree" | df_post$father_education == "Postgraduate", 
+                                1, 0)
+
+df_post$parent_college <- ifelse(df_post$father_education == "Bachelor's degree" | df_post$father_education == "Postgraduate" | 
+                                   df_post$mother_education == "Bachelor's degree" | df_post$mother_education == "Postgraduate", 
+                                 1, 0)
+
+df_parentedu <- df_post %>% group_by(State, School, Class) %>% summarise(parent_college = mean(parent_college))
+df_condensed <- df_condensed %>%
+  left_join(df_parentedu, by = c("State", "School", "Class")) 
+
+
 #Write it for graphing
 write_xlsx(df_condensed, "df_condensed.xlsx")
 
@@ -312,13 +328,22 @@ model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condens
 summary(model1)
 summary(model2)
 
+#USE THIS ONE
 model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model3)$r.squared
-ggplot(df_condensed, aes(x = mean_score_pre, y = change_score)) + 
-  geom_point() + 
+summ(model3, digits=5)
+model_summary <- tidy(model3)
+write_xlsx(list("Model Summary" = model_summary), "model_summary.xlsx")
+
+
+model3v2 <- glm(change_score ~ mean_score_pre, data = df_condensed, weights = class_size)
+ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size)) + 
+  geom_point(alpha=0.5) + 
   labs(x = "Mean Score Pre", 
        y = "Change Score") + 
   theme_classic()
+
+summ(model3v2)
 
 #Now we ask if change in the score is predictive of change in vaccination status
 #Will need to talk about these
@@ -336,8 +361,7 @@ summary(model5v2)
 library(gtsummary)
 library(table1)
 
-#need to add edu/occupation info to table
-summary_table <- table1(~mean_score_pre + mean_score_post + n_posttest | State, data=df_condensed, miss = 0)
+summary_table <- table1(~mean_score_pre + mean_score_post + n_posttest + parent_college | State, data=df_condensed, miss = 0)
 summary_df <- as.data.frame(summary_table)
 write_xlsx(summary_df, path = "summary_table.xlsx")
 
