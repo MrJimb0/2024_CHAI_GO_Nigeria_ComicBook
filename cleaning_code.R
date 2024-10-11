@@ -2,8 +2,8 @@
 #Authors: Nicole Kim, BS and James Dickerson, MD MS 
 
 options(scipen=999)
-setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
-#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
+#setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
+setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
 
 library(tidyverse)
 library(readxl)
@@ -133,6 +133,9 @@ df_post$survey_score <- rowSums(df_post[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", 
 
 df_pre$vaccination_status <- +(df_pre$"Have you received the HPV vaccine?" == "Yes")
 df_post$vaccination_status <- +(df_post$"Have you received the HPV vaccine?" == "Yes")
+
+df_pre$perception <- +(df_pre$"Do you think it's safe to get vaccinated?" == "Yes")
+df_post$perception <- +(df_post$"Do you think it's safe to get vaccinated?" == "Yes")
 
 df_pre <- df_pre %>% 
   rename(
