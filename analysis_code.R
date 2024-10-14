@@ -5,8 +5,6 @@ options(scipen=999)
 library(Matrix)
 library(readxl)
 library(tidyverse)
-library(stargazer)
-library(car)
 library(lmerTest)
 library(performance)
 library(knitr)
@@ -51,12 +49,11 @@ summary_n <- data.frame(State = c("FCT", "Kaduna", "Rivers", "Lagos"),
 summary_stats <- summary_pre %>%
   left_join(summary_n, by = c("State"))
 
-n_pre <- 388
 summary_stats <- as.data.frame(rbind(summary_stats, 
                  data.frame(State = c("total"),
                             mean_age = c(mean(df_pre$Age)), 
-                            pct_christian = c(sum(df_pre$Religion == "Christianity", na.rm = TRUE) / n_pre), 
-                            pct_muslim = c(sum(df_pre$Religion == "Islam", na.rm = TRUE) / n_pre), 
+                            pct_christian = c(sum(df_pre$Religion == "Christianity", na.rm = TRUE) / nrow(df_pre)), 
+                            pct_muslim = c(sum(df_pre$Religion == "Islam", na.rm = TRUE) / nrow(df_pre)), 
                             n_students_pre = c(nrow(df_pre)), n_students_post = c(nrow(df_post)),
                             pct_parent_college = c(mean(df_pre$parent_college, na.rm=TRUE)), 
                             n_schools = c(10), 
@@ -65,28 +62,23 @@ summary_stats <- as.data.frame(rbind(summary_stats,
 print(summary_stats)
 write_xlsx(summary_stats, path = "demographic_tablev1.xlsx")
 
-
 #alt version 
 demographic_table <- table1(~Age + parent_college + Religion + survey_score + vaccination_status | State, data=df_pre, miss = 0)
 demographic_table.df <- as.data.frame(demosummary_table)
 write_xlsx(demographic_table.df, path = "demographic_table.xlsx")
 
-#Overall T test showing improvement in test scores for everyone
-overall_t <- (t.test(df_post$survey_score, df_pre$survey_score))
-kable(tidy(overall_t), digits = 2, caption = "Overall T-test Results")
 
+#DATA SUMMARIES: 
 #First, we look at baseline test scores by state. we expect a difference 
 pre_post_test_scores_by_state <- rbind(
-  df_pre %>%
-    group_by(State) %>%
+  df_pre %>% group_by(State) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
       N = sum(!is.na(survey_score)),
       Time = "Pre-test"
     ),
-  df_post %>%
-    group_by(State) %>%
+  df_post %>% group_by(State) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
@@ -99,16 +91,14 @@ kable(pre_post_test_scores_by_state, digits = 2)
 
 #Then, we look at age, within each state
 pre_post_test_scores_by_state_age <- rbind(
-  df_pre %>%
-    group_by(State, Age) %>%
+  df_pre %>% group_by(State, Age) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
       N = sum(!is.na(survey_score)),
       Time = "Pre-test"
     ),
-  df_post %>%
-    group_by(State, Age) %>%
+  df_post %>% group_by(State, Age) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
@@ -121,16 +111,14 @@ kable(pre_post_test_scores_by_state_age, digits = 2)
 
 #Then, we look at school, within each state
 pre_post_test_scores_by_state_school <- rbind(
-  df_pre %>%
-    group_by(State, School) %>%
+  df_pre %>% group_by(State, School) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
       N = sum(!is.na(survey_score)),
       Time = "Pre-test"
     ),
-  df_post %>%
-    group_by(State, School) %>%
+  df_post %>% group_by(State, School) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
@@ -141,34 +129,31 @@ pre_post_test_scores_by_state_school <- rbind(
 
 kable(pre_post_test_scores_by_state_school, digits = 2)
 
-#We look at each class 
-#There is a lot of unevenness in the representation of the classes For example, one class in Abuja has 8 in the pre-test and 20 in the post-test
-#So we have a sampling error within the schools that we need to look at and discuss as a major limitation
+#look at each class 
+  #There is a lot of unevenness in the representation of the classes For example, one class in Abuja has 8 in the pre-test and 20 in the post-test
+  #So we have a sampling error within the schools that we need to look at and discuss as a major limitation
 pre_post_test_scores_by_state_school_class <- rbind(
-  df_pre %>%
-    group_by(State, School, Class) %>%
+  df_pre %>% group_by(State, School, Class) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
       N = sum(!is.na(survey_score)),
       Time = "Pre-test"
     ),
-  df_post %>%
-    group_by(State, School, Class) %>%
+  df_post %>% group_by(State, School, Class) %>%
     summarise(
       Mean = mean(survey_score, na.rm = TRUE),
       SD = sd(survey_score, na.rm = TRUE),
       N = sum(!is.na(survey_score)),
       Time = "Post-test"
     )
-) %>%
-  pivot_wider(names_from = "Time", values_from = c(Mean, SD, N))
+) %>% pivot_wider(names_from = "Time", values_from = c(Mean, SD, N))
 
 kable(pre_post_test_scores_by_state_school_class, digits = 2)
 
 pre_post_test_scores_by_state_school_class$`N_Post-test`
 
-#Now, we want to look at the relationship between parental education and pre-test score both for mom and dad 
+#relationship between parental education and pre-test score both for mom and dad 
   #NA answers for parent education were not counted  
 father_edu_vs_pre_test_score <- df_pre %>% 
   filter(!is.na(father_education)) %>%
@@ -186,15 +171,22 @@ mother_edu_vs_pre_test_score <- mother_edu_vs_pre_test_score %>% rename(edu_leve
 
 parent_edu_vs_pre_test_score <- rbind(mother_edu_vs_pre_test_score, father_edu_vs_pre_test_score)
 df_edu <- parent_edu_vs_pre_test_score
-            
-#Next, we do a bunch of t tests. All are significant with improvements in scores 
+    
+#T-TESTS:
+
+#All results for knowledge gain are significant with improvements in scores 
+
+#Overall T test showing improvement in test scores for everyone
+overall_t <- (t.test(df_post$survey_score, df_pre$survey_score))
+kable(tidy(overall_t), digits = 2, caption = "Overall T-test Results")        
+#by state
 FCT.htest = t.test(df_post[df_post$State == "FCT",]$survey_score, df_pre[df_pre$State == "FCT",]$survey_score)
 Kaduna.htest = t.test(df_post[df_post$State == "Kaduna",]$survey_score, df_pre[df_pre$State == "Kaduna",]$survey_score)
 Rivers.htest = t.test(df_post[df_post$State == "Rivers",]$survey_score, df_pre[df_pre$State == "Rivers",]$survey_score)
 Lagos.htest = t.test(df_post[df_post$State == "Lagos",]$survey_score, df_pre[df_pre$State == "Lagos",]$survey_score)
 overall.htest = t.test(df_post$survey_score, df_pre$survey_score)
 
-
+#t-tests by state, class, age
 t_tests <- list(
   FCT = tidy(FCT.htest),
   Kaduna = tidy(Kaduna.htest),
@@ -217,7 +209,7 @@ results_df <- do.call(rbind, t_tests)
 # Add a column for the name
 results_df$Stratification_Factor <- names(t_tests)
 
-#Output table for score improvement t-test
+#Output tables for score improvement t-test
 kable(results_df, digits = 2)
 
 library(table1)
@@ -258,7 +250,8 @@ Rivers_percep.htest = t.test(df_post[df_post$State == "Rivers",]$perception, df_
 Lagos_percep.htest = t.test(df_post[df_post$State == "Lagos",]$perception, df_pre[df_pre$State == "Lagos",]$perception)
 overall_percep.htest = t.test(df_post$perception, df_pre$perception)
 
-
+#Vaccination rates 
+## ** I dont think we need all of this bc it seems like only girls were surveyed anyway 
 #Next, we look at ∆ in vaccination status, stratifying by state and also looking at girl only schools (since we didn't record sex of the children)
 vax_tests <- list(
   FCT = tidy(prop.test(x = sum(df_post[df_post$State == "FCT", ]$vaccination_status, na.rm = TRUE), 
@@ -307,6 +300,7 @@ vax_numbers <- data.frame(
     }
   })
 )
+
 # Use kable to summarize the results
 # these results should NOT be seen as causitive 
 #Improvement in girls being vaccinated and in all states BUT many confounders 
@@ -318,8 +312,40 @@ vax_numbers_long <- vax_numbers %>%
   pivot_longer(cols = c(vaccinated_pre, vaccinated_post), names_to = "time", values_to = "vaccinations")
 write_xlsx(vax_numbers_long, "vax_numbers_long.xlsx")
 
+#alt version of test for vaccinations rates 
+FCT_vax.htest = t.test(df_post[df_post$State == "FCT",]$vaccination_status, df_pre[df_pre$State == "FCT",]$vaccination_status)
+Kaduna_vax.htest = t.test(df_post[df_post$State == "Kaduna",]$vaccination_status, df_pre[df_pre$State == "Kaduna",]$vaccination_status)
+Rivers_vax.htest = t.test(df_post[df_post$State == "Rivers",]$vaccination_status, df_pre[df_pre$State == "Rivers",]$vaccination_status)
+Lagos_vax.htest = t.test(df_post[df_post$State == "Lagos",]$vaccination_status, df_pre[df_pre$State == "Lagos",]$vaccination_status)
+overall_vax.htest = t.test(df_post$vaccination_status, df_pre$vaccination_status)
 
-#Mixed effects Models
+vax_summary <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall"),
+                          pct_pre = c(mean(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Lagos",]$vaccination_status, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                       mean(df_pre$vaccination_status, na.rm=TRUE)),
+                          sd_pre = c(sd(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Lagos",]$vaccination_status, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                     sd(df_pre$vaccination_status, na.rm=TRUE)),
+                          pct_post = c(mean(df_post[df_post$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                        mean(df_post$vaccination_status, na.rm=TRUE)),
+                          sd_post = c(sd(df_post[df_post$State == "FCT",]$vaccination_status, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
+                                      sd(df_post$vaccination_status, na.rm=TRUE)),
+                          p_value = c(FCT_vax.htest$p.value, Kaduna_vax.htest$p.value, Lagos_vax.htest$p.value, Rivers_vax.htest$p.value, overall_vax.htest$p.value)
+                          )
+write_xlsx(vax_summary, path = "vax_summary.xlsx")
+
+
+#MIXED EFFECTS MODELS:
 
 #Set up of a condensed df. Decided to condense at the level of the class as that is the smallest unit we have 
 
@@ -387,16 +413,17 @@ model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condens
 summary(model1)
 summary(model2)
 
-#USE THIS ONE
+#pre-test score predicting change in score
+##USE THIS ONE
 model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
-summary(model3)$r.squared
-summ(model3, digits=5)
-model_summary <- tidy(model3)
+summary(model3)
+#model_summary <- tidy(model3) 
+    #Error: No tidy method for objects of class lmerModLmerTest
 write_xlsx(list("Model Summary" = model_summary), "model_summary.xlsx")
 
-tbl_regression(model3, exponentiate = TRUE)
-
 model3v2 <- glm(change_score ~ mean_score_pre, data = df_condensed, weights = class_size)
+summary(model3v2)
+
 ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size)) + 
   geom_point(alpha=0.5) + 
   geom_smooth(method = "lm", se = FALSE) +
@@ -404,10 +431,8 @@ ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size
        y = "Change Score") + 
   theme_classic()
 
-summary(model3v2)
 
 #Now we ask if change in the score is predictive of change in vaccination status
-#Will need to talk about these
 model4 <- glm(change_vaccination_status ~ change_score, data = df_condensed, weights = class_size)
 model5 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
 summary(model4)
@@ -418,6 +443,12 @@ model5v2 <- lmer(change_vaccination_status ~ change_score + (1 | State),
                weights = class_size)
 summary(model5v2)
 
-model6 <- lmer(change_vaccination_status ~ change_perception + (1 | State), data = df_condensed, weights = class_size)
-model6v2 <- lmer(change_vaccination_status ~ post_perception + (1 | State), data = df_condensed, weights = class_size)
-  #model 6 significant p = 0.03, 6v2 p = 0.058
+#models including vaccine perception 
+model6 <- lmer(change_vaccination_status ~ change_perception + (1 | State), 
+               data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
+               weights = class_size)
+model6v2 <- lmer(change_vaccination_status ~ post_perception + (1 | State), 
+                 data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
+                 weights = class_size)
+
+model7 <- lmer(change_perception ~ change_score + (1 | State), data = df_condensed, weights = class_size)
