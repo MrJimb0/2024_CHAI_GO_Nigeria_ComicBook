@@ -29,6 +29,7 @@ df_pre$Age <- as.numeric(df_pre$Age)
 #summary stats table v1
 summary_pre <- df_pre %>% group_by(State) %>%
   summarize(mean_age = mean(Age, na.rm=TRUE),
+            sd_age = sd(Age, na.rm=TRUE),
             pct_christian = sum(Religion == "Christianity", na.rm = TRUE) / n() ,
             pct_muslim = sum(Religion == "Islam", na.rm = TRUE) / n())
 summary_n <- data.frame(State = c("FCT", "Kaduna", "Rivers", "Lagos"),
@@ -51,7 +52,8 @@ summary_stats <- summary_pre %>%
 
 summary_stats <- as.data.frame(rbind(summary_stats, 
                  data.frame(State = c("total"),
-                            mean_age = c(mean(df_pre$Age)), 
+                            mean_age = c(mean(df_pre$Age)),
+                            sd_age = c(sd(df_pre$Age)),
                             pct_christian = c(sum(df_pre$Religion == "Christianity", na.rm = TRUE) / nrow(df_pre)), 
                             pct_muslim = c(sum(df_pre$Religion == "Islam", na.rm = TRUE) / nrow(df_pre)), 
                             n_students_pre = c(nrow(df_pre)), n_students_post = c(nrow(df_post)),
