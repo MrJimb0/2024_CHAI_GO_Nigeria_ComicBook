@@ -245,6 +245,43 @@ summary_df2 <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall
                           )
 write_xlsx(summary_df2, path = "summary_figure2.xlsx")
 
+#score improvement as pct
+df_pre$survey_pct <- df_pre$survey_score/8
+df_post$survey_pct <- df_post$survey_score/8
+
+
+FCT_pct_htest = t.test(df_post[df_post$State == "FCT",]$survey_pct, df_pre[df_pre$State == "FCT",]$survey_pct)
+Kaduna_pct_htest = t.test(df_post[df_post$State == "Kaduna",]$survey_pct, df_pre[df_pre$State == "Kaduna",]$survey_pct)
+Rivers_pct_htest = t.test(df_post[df_post$State == "Rivers",]$survey_pct, df_pre[df_pre$State == "Rivers",]$survey_pct)
+Lagos_pct_htest = t.test(df_post[df_post$State == "Lagos",]$survey_pct, df_pre[df_pre$State == "Lagos",]$survey_pct)
+overall_pct_htest = t.test(df_post$survey_pct, df_pre$survey_pct)
+
+summary_df3 <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall"),
+                          mean_pre = c(mean(df_pre[df_pre$State == "FCT",]$survey_pct, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Kaduna",]$survey_pct, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Lagos",]$survey_pct, na.rm=TRUE),
+                                       mean(df_pre[df_pre$State == "Rivers",]$survey_pct, na.rm=TRUE),
+                                       mean(df_pre$survey_pct, na.rm=TRUE)),
+                          sd_pre = c(sd(df_pre[df_pre$State == "FCT",]$survey_pct, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Kaduna",]$survey_pct, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Lagos",]$survey_pct, na.rm=TRUE),
+                                     sd(df_pre[df_pre$State == "Rivers",]$survey_pct, na.rm=TRUE),
+                                     sd(df_pre$survey_pct, na.rm=TRUE)),
+                          mean_post = c(mean(df_post[df_post$State == "FCT",]$survey_pct, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Kaduna",]$survey_pct, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Lagos",]$survey_pct, na.rm=TRUE),
+                                        mean(df_post[df_post$State == "Rivers",]$survey_pct, na.rm=TRUE),
+                                        mean(df_post$survey_pct, na.rm=TRUE)),
+                          sd_post = c(sd(df_post[df_post$State == "FCT",]$survey_pct, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Kaduna",]$survey_pct, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Lagos",]$survey_pct, na.rm=TRUE),
+                                      sd(df_post[df_post$State == "Rivers",]$survey_pct, na.rm=TRUE),
+                                      sd(df_post$survey_pct, na.rm=TRUE)),
+                          p_value = c(FCT_pct_htest$p.value, Kaduna_pct_htest$p.value, Lagos_pct_htest$p.value, Rivers_pct_htest$p.value, overall_pct_htest$p.value)
+)
+
+write_xlsx(summary_df3, path = "summary_figure3.xlsx")
+
 #t-tests for perception of vaccine
 FCT_percep.htest = t.test(df_post[df_post$State == "FCT",]$perception, df_pre[df_pre$State == "FCT",]$perception)
 Kaduna_percep.htest = t.test(df_post[df_post$State == "Kaduna",]$perception, df_pre[df_pre$State == "Kaduna",]$perception)
