@@ -10,6 +10,8 @@ library(readxl)
 library(writexl)
 
 #Import the raw data from excel and format into a pre- and post- DF
+#files were edited in excel to remove empty rows 
+
 #Pre-intervention responses df
 sheet_fctpre = excel_sheets("FCT_Baseline_Responses_edited.xlsx") 
 FCT_pre = lapply(setNames(sheet_fctpre, sheet_fctpre),  
@@ -109,7 +111,7 @@ df_pre$Q12c <- +(df_pre$"You can get vaccinated with HPV at: Mobile vaccination 
 df_pre$Q12d <- +(df_pre$"You can get vaccinated with HPV at: Religious homes" == "Yes")
 df_pre$Q12e <- +(df_pre$"You can get vaccinated with HPV at: All of the above" == "Yes")
 
-df_pre$survey_score <- rowSums(df_pre[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
+df_pre$survey_score <- rowSums(df_pre[, c("Q1", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
 
 
 df_post$Q1 <- +(df_post$"What role do white blood cells play in the immune system?" == "Fighting off what makes you sick")
@@ -129,7 +131,10 @@ df_post$Q12c <- +(df_post$"You can get vaccinated with HPV at: Mobile vaccinatio
 df_post$Q12d <- +(df_post$"You can get vaccinated with HPV at: Religious homes" == "Yes")
 df_post$Q12e <- +(df_post$"You can get vaccinated with HPV at: All of the above" == "Yes")
 
-df_post$survey_score <- rowSums(df_post[, c("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
+df_post$survey_score <- rowSums(df_post[, c("Q1", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
+
+df_pre$heard_of_HPV <- +(df_pre$"Have you heard of the human papillomavirus (HPV)?" == "Yes")
+df_post$heard_of_HPV <- +(df_post$"Have you heard of the human papillomavirus (HPV)?" == "Yes")
 
 df_pre$vaccination_status <- +(df_pre$"Have you received the HPV vaccine?" == "Yes")
 df_post$vaccination_status <- +(df_post$"Have you received the HPV vaccine?" == "Yes")
@@ -151,16 +156,7 @@ df_post <- df_post %>%
     father_occupation = "Father's occupation",
     mother_occupation = "Mother's occupation")
 
-#Find unique matches between pre and post 
-df_total <- merge(df_pre, df_post, by = c("State", "LGA", "School", "Age", "Religion", "Class", 
-                                           "father_education", "mother_education",
-                                           "father_occupation", "mother_occupation"), 
-                   suffixes = c("_pre", "_post"), all = TRUE)
-
-# Select only the student_ID columns
-result_df <- df_total[, c("State", "School", "Student_ID_pre", "Student_ID_post")]
 
 # Save dfs as excel files to wd  
 write_xlsx(df_post, "df_post_cleaned.xlsx")
 write_xlsx(df_pre, "df_pre_cleaned.xlsx")
-write_xlsx(df_total, "df_total_cleaned.xlsx")
