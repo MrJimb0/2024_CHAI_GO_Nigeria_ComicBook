@@ -12,12 +12,13 @@ library(broom)
 library(ggplot2)
 library(writexl)
 library(table1)
+library(sjPlot)
 
-#setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
-setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_")
+setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
+#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_")
 
-df_pre <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_pre_cleaned.xlsx")
-df_post <- read_xlsx("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_/df_post_cleaned.xlsx")
+df_pre <- read_xlsx("df_pre_cleaned.xlsx")
+df_post <- read_xlsx("df_post_cleaned.xlsx")
 
 #Summary statistics For Tables 
 df_pre$parent_college <- ifelse(df_pre$father_education == "Bachelor's degree" | df_pre$father_education == "Postgraduate" | 
@@ -64,7 +65,7 @@ summary_stats <- as.data.frame(rbind(summary_stats,
                             pct_heardofHPV = c(mean(df_pre$heard_of_HPV, na.rm=TRUE))
                             )))
 print(summary_stats)
-write_xlsx(summary_stats, path = "demographic_tablev1.xlsx")
+#write_xlsx(summary_stats, path = "demographic_tablev1.xlsx")
 
 #alt version 
 # demographic_table <- table1(~Age + parent_college + Religion + survey_score + vaccination_status | State, data=df_pre, miss = 0)
@@ -160,7 +161,7 @@ kable(pre_post_test_scores_by_state_school_class, digits = 2)
 pre_post_test_scores_by_state_school_class$`N_Post_test`
 
 #relationship between parental education and pre-test score both for mom and dad 
-  #NA answers for parent education were not counted  
+#NA answers for parent education were not counted, note that none was a seperate option
 father_edu_vs_pre_test_score <- df_pre %>% 
   filter(!is.na(father_education)) %>%
   group_by(State, father_education) %>%
@@ -177,59 +178,29 @@ mother_edu_vs_pre_test_score <- mother_edu_vs_pre_test_score %>% rename(edu_leve
 
 parent_edu_vs_pre_test_score <- rbind(mother_edu_vs_pre_test_score, father_edu_vs_pre_test_score)
 df_edu <- parent_edu_vs_pre_test_score
-    
+kable(df_edu, digits = 2)
+
 #T-TESTS:
-
 #All results for knowledge gain are significant with improvements in scores 
-
 #Overall T test showing improvement in test scores for everyone
-overall_t <- (t.test(df_post$survey_score, df_pre$survey_score))
-kable(tidy(overall_t), digits = 2, caption = "Overall T-test Results")        
-#by state
-FCT.htest = t.test(df_post[df_post$State == "FCT",]$survey_score, df_pre[df_pre$State == "FCT",]$survey_score)
-Kaduna.htest = t.test(df_post[df_post$State == "Kaduna",]$survey_score, df_pre[df_pre$State == "Kaduna",]$survey_score)
-Rivers.htest = t.test(df_post[df_post$State == "Rivers",]$survey_score, df_pre[df_pre$State == "Rivers",]$survey_score)
-Lagos.htest = t.test(df_post[df_post$State == "Lagos",]$survey_score, df_pre[df_pre$State == "Lagos",]$survey_score)
-overall.htest = t.test(df_post$survey_score, df_pre$survey_score)
+overall_t <- t.test(df_post$survey_score, df_pre$survey_score)
+kable(tidy(overall_t), digits = 2, caption = "Overall T-test Results")
+# by state
+t_tests <- list(
+  FCT = t.test(df_post[df_post$State == "FCT",]$survey_score, df_pre[df_pre$State == "FCT",]$survey_score),
+  Kaduna = t.test(df_post[df_post$State == "Kaduna",]$survey_score, df_pre[df_pre$State == "Kaduna",]$survey_score),
+  Rivers = t.test(df_post[df_post$State == "Rivers",]$survey_score, df_pre[df_pre$State == "Rivers",]$survey_score),
+  Lagos = t.test(df_post[df_post$State == "Lagos",]$survey_score, df_pre[df_pre$State == "Lagos",]$survey_score)
+)
 
 # Combine the results into a single data frame
-results_df <- do.call(rbind, t_tests)
+results_df <- do.call(rbind, lapply(t_tests, tidy))
 # Add a column for the name
 results_df$Stratification_Factor <- names(t_tests)
 
 #Output tables for score improvement t-test
 kable(results_df, digits = 2)
 
-library(table1)
-summary_table1 <- table1(~mean_score_pre + mean_score_post + n_posttest | State, data=df_condensed, miss = 0)
-summary_df1 <- as.data.frame(summary_table1)
-write_xlsx(summary_df1, path = "summary_table1.xlsx")
-
-#table for t-test results for score improvement -- old table 2 version 
-# summary_df2 <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall"),
-#                           mean_pre = c(mean(df_pre[df_pre$State == "FCT",]$survey_score, na.rm=TRUE),
-#                                        mean(df_pre[df_pre$State == "Kaduna",]$survey_score, na.rm=TRUE),
-#                                        mean(df_pre[df_pre$State == "Lagos",]$survey_score, na.rm=TRUE),
-#                                        mean(df_pre[df_pre$State == "Rivers",]$survey_score, na.rm=TRUE),
-#                                        mean(df_pre$survey_score, na.rm=TRUE)),
-#                           sd_pre = c(sd(df_pre[df_pre$State == "FCT",]$survey_score, na.rm=TRUE),
-#                                      sd(df_pre[df_pre$State == "Kaduna",]$survey_score, na.rm=TRUE),
-#                                      sd(df_pre[df_pre$State == "Lagos",]$survey_score, na.rm=TRUE),
-#                                      sd(df_pre[df_pre$State == "Rivers",]$survey_score, na.rm=TRUE),
-#                                      sd(df_pre$survey_score, na.rm=TRUE)),
-#                           mean_post = c(mean(df_post[df_post$State == "FCT",]$survey_score, na.rm=TRUE),
-#                                         mean(df_post[df_post$State == "Kaduna",]$survey_score, na.rm=TRUE),
-#                                         mean(df_post[df_post$State == "Lagos",]$survey_score, na.rm=TRUE),
-#                                         mean(df_post[df_post$State == "Rivers",]$survey_score, na.rm=TRUE),
-#                                         mean(df_post$survey_score, na.rm=TRUE)),
-#                           sd_post = c(sd(df_post[df_post$State == "FCT",]$survey_score, na.rm=TRUE),
-#                                       sd(df_post[df_post$State == "Kaduna",]$survey_score, na.rm=TRUE),
-#                                       sd(df_post[df_post$State == "Lagos",]$survey_score, na.rm=TRUE),
-#                                       sd(df_post[df_post$State == "Rivers",]$survey_score, na.rm=TRUE),
-#                                       sd(df_post$survey_score, na.rm=TRUE)),
-#                           p_value = c(FCT.htest$p.value, Kaduna.htest$p.value, Lagos.htest$p.value, Rivers.htest$p.value, overall.htest$p.value)
-#                           )
-# write_xlsx(summary_df2, path = "summary_figure2.xlsx")
 
 #score improvement as pct -- Table 2
 df_pre$survey_pct <- df_pre$survey_score/7
@@ -264,7 +235,7 @@ summary_df3 <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall
                                       sd(df_post$survey_pct, na.rm=TRUE)),
                           p_value = c(FCT_pct_htest$p.value, Kaduna_pct_htest$p.value, Lagos_pct_htest$p.value, Rivers_pct_htest$p.value, overall_pct_htest$p.value)
 )
-
+kable(summary_df3, digits = 2)
 write_xlsx(summary_df3, path = "summary_figure3.xlsx")
 
 #t-tests for perception of vaccine
@@ -274,43 +245,46 @@ Rivers_percep.htest = t.test(df_post[df_post$State == "Rivers",]$perception, df_
 Lagos_percep.htest = t.test(df_post[df_post$State == "Lagos",]$perception, df_pre[df_pre$State == "Lagos",]$perception)
 overall_percep.htest = t.test(df_post$perception, df_pre$perception)
 
-#test for vaccinations rates 
-FCT_vax.htest = t.test(df_post[df_post$State == "FCT",]$vaccination_status, df_pre[df_pre$State == "FCT",]$vaccination_status)
-Kaduna_vax.htest = t.test(df_post[df_post$State == "Kaduna",]$vaccination_status, df_pre[df_pre$State == "Kaduna",]$vaccination_status)
-Rivers_vax.htest = t.test(df_post[df_post$State == "Rivers",]$vaccination_status, df_pre[df_pre$State == "Rivers",]$vaccination_status)
-Lagos_vax.htest = t.test(df_post[df_post$State == "Lagos",]$vaccination_status, df_pre[df_pre$State == "Lagos",]$vaccination_status)
-overall_vax.htest = t.test(df_post$vaccination_status, df_pre$vaccination_status)
+#Perception of vaccine raw percentage
+summary(df_pre[df_pre$State == "FCT",]$perception)
+summary(df_post[df_post$State == "FCT",]$perception)
+summary(df_pre[df_pre$State == "Kaduna",]$perception)
+summary(df_post[df_post$State == "Kaduna",]$perception)
+summary(df_pre[df_pre$State == "Rivers",]$perception)
+summary(df_post[df_post$State == "Rivers",]$perception)
+summary(df_pre[df_pre$State == "Lagos",]$perception)
+summary(df_post[df_post$State == "Lagos",]$perception)
+summary(df_pre$perception)
+summary(df_post$perception)
 
-vax_summary <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall"),
-                          pct_pre = c(mean(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm=TRUE),
-                                       mean(df_pre[df_pre$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
-                                       mean(df_pre[df_pre$State == "Lagos",]$vaccination_status, na.rm=TRUE),
-                                       mean(df_pre[df_pre$State == "Rivers",]$vaccination_status, na.rm=TRUE),
-                                       mean(df_pre$vaccination_status, na.rm=TRUE)),
-                          sd_pre = c(sd(df_pre[df_pre$State == "FCT",]$vaccination_status, na.rm=TRUE),
-                                     sd(df_pre[df_pre$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
-                                     sd(df_pre[df_pre$State == "Lagos",]$vaccination_status, na.rm=TRUE),
-                                     sd(df_pre[df_pre$State == "Rivers",]$vaccination_status, na.rm=TRUE),
-                                     sd(df_pre$vaccination_status, na.rm=TRUE)),
-                          pct_post = c(mean(df_post[df_post$State == "FCT",]$vaccination_status, na.rm=TRUE),
-                                        mean(df_post[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
-                                        mean(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE),
-                                        mean(df_post[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
-                                        mean(df_post$vaccination_status, na.rm=TRUE)),
-                          sd_post = c(sd(df_post[df_post$State == "FCT",]$vaccination_status, na.rm=TRUE),
-                                      sd(df_post[df_post$State == "Kaduna",]$vaccination_status, na.rm=TRUE),
-                                      sd(df_post[df_post$State == "Lagos",]$vaccination_status, na.rm=TRUE),
-                                      sd(df_post[df_post$State == "Rivers",]$vaccination_status, na.rm=TRUE),
-                                      sd(df_post$vaccination_status, na.rm=TRUE)),
-                          p_value = c(FCT_vax.htest$p.value, Kaduna_vax.htest$p.value, Lagos_vax.htest$p.value, Rivers_vax.htest$p.value, overall_vax.htest$p.value)
-                          )
-write_xlsx(vax_summary, path = "vax_summary.xlsx")
+perception_df <- data.frame(
+  State = c("Overall", "FCT", "Kaduna", "Rivers", "Lagos"),
+  Pre = c(
+    0.6176,
+    0.8315,
+    0.4845,
+    0.6226,
+    0.5474
+  ),
+  Post = c(
+    0.8104,
+    0.7935,
+    0.8081,
+    0.94,
+    0.6915
+  )
+)
 
+perception_df
+#Then T test for overall vaccination status
+overall_vax.ttest = t.test(df_post$vaccination_status, df_pre$vaccination_status)
+overall_vax.ttest
+#Then T test for overall perception of vaccine
+overall_percep.ttest = t.test(df_post$perception, df_pre$perception)
+overall_percep.ttest
 
 #MIXED EFFECTS MODELS:
-
 #Set up of a condensed df. Decided to condense at the level of the class as that is the smallest unit we have 
-
 pre_score_mean <- df_pre %>% group_by(State, School, Class) %>% summarise(mean_score_pre = mean(survey_score, na.rm=TRUE))
 post_score_mean <- df_post %>% group_by(State,School,Class) %>% summarise(mean_score_post = mean(survey_score, na.rm=TRUE))
 df_condensed <- merge(pre_score_mean, post_score_mean, by=c("State", "School", "Class"), all = TRUE)
@@ -365,45 +339,84 @@ df_condensed <- df_condensed %>%
 #Write it for graphing
 write_xlsx(df_condensed, "df_condensed.xlsx")
 
-#See graphs for visual representation, non-sig linear relationship for total dataset, 
-  #when random intercept for state then we see a significant effect
+#This model is pre test predicts post test. which is pretty useless other than as a data check
 model1 <- glm(mean_score_post ~ mean_score_pre, data = df_condensed, weights = class_size)
 model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model1)
 summary(model2)
 
-#pre-test score predicting change in score
-##USE THIS ONE
+plot_model(model2, type = "pred", terms = "mean_score_pre")
+ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_size)) + 
+  geom_point(alpha=0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Mean Score Pre", 
+       y = "Mean Score Post") + 
+  theme_classic()
+
+#Does Pre-test score predict score change ie learning?
 model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model3)
-#model_summary <- tidy(model3) 
-    #Error: No tidy method for objects of class lmerModLmerTest
-write_xlsx(list("Model Summary" = model_summary), "model_summary.xlsx")
 
-model3v2 <- glm(change_score ~ mean_score_pre, data = df_condensed, weights = class_size)
-summary(model3v2)
-
-ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size)) + 
-  geom_point(alpha=0.5) + 
+ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size, color = State)) +
+  geom_point(aes(color = State), alpha = 0.5) + 
   geom_smooth(method = "lm", se = FALSE) +
   labs(x = "Mean Score Pre", 
        y = "Change Score") + 
   theme_classic()
+#Results show learning w downward slopes for all. if score of 3 then expect a change of 1.5. If score of 5 then expect a change of 0.5
+#Of course there is a cieling but effect is fairly linear 
 
-
-#Now we ask if change in the score is predictive of change in vaccination status
-model4 <- glm(change_vaccination_status ~ change_score, data = df_condensed, weights = class_size)
-model5 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
+#Now we ask if change in the test score, vaccine perception, or post-perception is predictive of change in vaccination status and post-vaccine status
+model4 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
 summary(model4)
-summary(model5)
+
+#No relationships really other than kaduna. However, we now there are bad data, for example the kids who reported they were already vaccinated
+ggplot(df_condensed, aes(x = change_score, y = change_vaccination_status, size = class_size, color = State)) +
+  geom_point(aes(color = State), alpha = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Change in Test Score", 
+       y = "Change in Vaccination Status") + 
+  theme_classic() 
+
 #Re-run model 4 with the -22% removed
-model5v2 <- lmer(change_vaccination_status ~ change_score + (1 | State), 
+model4vers2 <- lmer(change_vaccination_status ~ change_score + (1 | State), 
                data = df_condensed %>% filter(change_score >= 0 & change_vaccination_status >= 0), 
                weights = class_size)
-summary(model5v2)
+summary(model4vers2)
+#Still no relationship. Not suprising as we know there are issues with the data and we are looking at education, not effect
 
-#models including vaccine perception 
+
+#models with vaccine perception 
 model6 <- lmer(change_vaccination_status ~ change_perception + (1 | State), data = df_condensed, weights = class_size)
-model6v2 <- lmer(change_vaccination_status ~ post_perception + (1 | State), data = df_condensed, weights = class_size)
+summary(model6)
 
-model7 <- lmer(change_perception ~ change_score + (1 | State), data = df_condensed, weights = class_size)
+ggplot(df_condensed, aes(x = change_perception, y = change_vaccination_status, size = class_size, color= State)) +
+  geom_point(aes(color = State), alpha = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Change in Perception", 
+       y = "Change in Vaccination Status") + 
+  theme_classic()
+
+model7 <- lmer(change_vaccination_status ~ post_perception + (1 | State), data = df_condensed, weights = class_size)
+summary(model7)
+
+ggplot(df_condensed, aes(x = post_perception, y = change_vaccination_status, size = class_size, color= State)) +
+  geom_point(aes(color = State), alpha = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Post Perception", 
+       y = "Change in Vaccination Status") + 
+  theme_classic()
+
+model8 <- lmer(change_perception ~ change_score + (1 | State), data = df_condensed, weights = class_size)
+summary(model8)
+
+ggplot(df_condensed, aes(x = change_score, y = change_perception, size = class_size, color= State)) +
+  geom_point(aes(color = State), alpha = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Change in Test Score", 
+       y = "Change in Perception") + 
+  theme_classic()
+
+
+
+
