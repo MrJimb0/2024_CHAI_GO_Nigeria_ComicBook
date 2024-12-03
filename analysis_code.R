@@ -178,7 +178,102 @@ mother_edu_vs_pre_test_score <- mother_edu_vs_pre_test_score %>% rename(edu_leve
 
 parent_edu_vs_pre_test_score <- rbind(mother_edu_vs_pre_test_score, father_edu_vs_pre_test_score)
 df_edu <- parent_edu_vs_pre_test_score
+<<<<<<< Updated upstream
 kable(df_edu, digits = 2)
+=======
+    
+#reasons for no vax 
+vax_decisionfactors_post <- select(df_post, State, "Have you received the HPV vaccine?",
+                              "If you haven't received the HPV vaccine, factors: Our state doesn’t have the HPV vaccine yet",
+                              "If you haven't received the HPV vaccine, factors: Lack of information",
+                              "If you haven't received the HPV vaccine, factors: Fear of side effects",
+                              "If you haven't received the HPV vaccine, factors: Parental influence",
+                              "If you haven't received the HPV vaccine, factors: Other (please specify)")
+vax_decisionfactors_post <- rename(vax_decisionfactors_post, 
+                              vaccinated = "Have you received the HPV vaccine?",
+                              no_vaccine = "If you haven't received the HPV vaccine, factors: Our state doesn’t have the HPV vaccine yet",
+                              lack_of_info = "If you haven't received the HPV vaccine, factors: Lack of information", 
+                              side_effects = "If you haven't received the HPV vaccine, factors: Fear of side effects",
+                              parent_influence = "If you haven't received the HPV vaccine, factors: Parental influence", 
+                              other = "If you haven't received the HPV vaccine, factors: Other (please specify)")
+vax_decisionfactors_post <- vax_decisionfactors_post %>% filter(vaccinated != "Yes")
+vax_decisionfactors_post$not_vaccinatedX <- +(vax_decisionfactors_post$vaccinated == "No" | vax_decisionfactors_post$vaccinated == "Don't know")
+vax_decisionfactors_post$no_vaccineX <-  +(vax_decisionfactors_post$no_vaccine == "Yes")
+vax_decisionfactors_post$lack_of_infoX <- +(vax_decisionfactors_post$lack_of_info == "Yes")
+vax_decisionfactors_post$side_effectsX <- +(vax_decisionfactors_post$side_effects == "Yes")
+vax_decisionfactors_post$parent_influenceX <- +(vax_decisionfactors_post$parent_influence == "Yes")
+vax_decisionfactors_post$otherX <- +(vax_decisionfactors_post$other == "Yes")
+
+states <- c("FCT", "Kaduna", "Lagos", "Rivers")
+vax_hesitancy_post <- vax_decisionfactors_post %>%
+  filter(State %in% c(states, "overall")) %>%
+  group_by(State) %>%
+  summarise(
+    not_vaccinated = sum(not_vaccinatedX, na.rm = TRUE),
+    no_vaccine = sum(no_vaccineX, na.rm = TRUE),
+    lack_of_info = sum(lack_of_infoX, na.rm = TRUE),
+    side_effects = sum(side_effectsX, na.rm = TRUE),
+    parent_influence = sum(parent_influenceX, na.rm = TRUE),
+    other = sum(otherX, na.rm = TRUE)
+  ) %>%
+  bind_rows(
+    tibble(State = "overall", 
+           not_vaccinated = sum(vax_decisionfactors_post$not_vaccinatedX, na.rm = TRUE),
+           no_vaccine = sum(vax_decisionfactors_post$no_vaccineX, na.rm = TRUE),
+           lack_of_info = sum(vax_decisionfactors_post$lack_of_infoX, na.rm = TRUE),
+           side_effects = sum(vax_decisionfactors_post$side_effectsX, na.rm = TRUE),
+           parent_influence = sum(vax_decisionfactors_post$parent_influenceX, na.rm = TRUE),
+           other = sum(vax_decisionfactors_post$otherX, na.rm = TRUE))
+  )
+
+vax_decisionfactors_pre <- select(df_pre, State, "Have you received the HPV vaccine?",
+                              "If you haven't received the HPV vaccine, factors: Our state doesn’t have the HPV vaccine yet",
+                              "If you haven't received the HPV vaccine, factors: Lack of information",
+                              "If you haven't received the HPV vaccine, factors: Fear of side effects",
+                              "If you haven't received the HPV vaccine, factors: Parental influence",
+                              "If you haven't received the HPV vaccine, factors: Other (please specify)")
+vax_decisionfactors_pre <- rename(vax_decisionfactors_pre, 
+                              vaccinated = "Have you received the HPV vaccine?",
+                              no_vaccine = "If you haven't received the HPV vaccine, factors: Our state doesn’t have the HPV vaccine yet",
+                              lack_of_info = "If you haven't received the HPV vaccine, factors: Lack of information", 
+                              side_effects = "If you haven't received the HPV vaccine, factors: Fear of side effects",
+                              parent_influence = "If you haven't received the HPV vaccine, factors: Parental influence", 
+                              other = "If you haven't received the HPV vaccine, factors: Other (please specify)")
+
+vax_decisionfactors_pre <- vax_decisionfactors_pre %>% filter(vaccinated != "Yes")
+
+vax_decisionfactors_pre$not_vaccinatedX <- +(vax_decisionfactors_pre$vaccinated == "No" | vax_decisionfactors_pre$vaccinated == "Don't know")
+vax_decisionfactors_pre$no_vaccineX <- +(vax_decisionfactors_pre$no_vaccine == "Yes")
+vax_decisionfactors_pre$lack_of_infoX <- +(vax_decisionfactors_pre$lack_of_info == "Yes")
+vax_decisionfactors_pre$side_effectsX <- +(vax_decisionfactors_pre$side_effects == "Yes")
+vax_decisionfactors_pre$parent_influenceX <- +(vax_decisionfactors_pre$parent_influence == "Yes")
+vax_decisionfactors_pre$otherX <- +(vax_decisionfactors_pre$other == "Yes")
+
+vax_hesitancy_pre <- vax_decisionfactors_pre %>%
+  filter(State %in% c(states, "overall")) %>%
+  group_by(State) %>%
+  summarise(
+    not_vaccinated = sum(not_vaccinatedX, na.rm = TRUE),
+    no_vaccine = sum(no_vaccineX, na.rm = TRUE),
+    lack_of_info = sum(lack_of_infoX, na.rm = TRUE),
+    side_effects = sum(side_effectsX, na.rm = TRUE),
+    parent_influence = sum(parent_influenceX, na.rm = TRUE),
+    other = sum(otherX, na.rm = TRUE)
+  ) %>%
+  bind_rows(
+    tibble(State = "overall", 
+           not_vaccinated = sum(vax_decisionfactors_pre$not_vaccinatedX, na.rm = TRUE),
+           no_vaccine = sum(vax_decisionfactors_pre$no_vaccineX, na.rm = TRUE),
+           lack_of_info = sum(vax_decisionfactors_pre$lack_of_infoX, na.rm = TRUE),
+           side_effects = sum(vax_decisionfactors_pre$side_effectsX, na.rm = TRUE),
+           parent_influence = sum(vax_decisionfactors_pre$parent_influenceX, na.rm = TRUE),
+           other = sum(vax_decisionfactors_pre$otherX, na.rm = TRUE))
+  )
+
+write_xlsx(vax_hesitancy_post, path = "vax_hesitancy_post.xlsx")
+write_xlsx(vax_hesitancy_pre, path = "vax_hesitancy_pre.xlsx")
+
+>>>>>>> Stashed changes
 
 #T-TESTS:
 #All results for knowledge gain are significant with improvements in scores 
@@ -345,6 +440,7 @@ model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condens
 summary(model1)
 summary(model2)
 
+<<<<<<< Updated upstream
 plot_model(model2, type = "pred", terms = "mean_score_pre")
 ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_size)) + 
   geom_point(alpha=0.5) + 
@@ -354,6 +450,14 @@ ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_s
   theme_classic()
 
 #Does Pre-test score predict score change ie learning?
+=======
+#exploratory models 
+em1 <- lmer(parent_college ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
+em2 <- lmer(Age ~ survey_score + (1 | State), data = df_pre)
+
+#pre-test score predicting change in score
+##USE THIS ONE
+>>>>>>> Stashed changes
 model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model3)
 
