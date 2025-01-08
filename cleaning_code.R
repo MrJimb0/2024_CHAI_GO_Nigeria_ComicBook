@@ -3,7 +3,6 @@
 
 options(scipen=999)
 setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
-#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_") 
 
 library(tidyverse)
 library(readxl)
@@ -111,6 +110,7 @@ df_pre$Q12c <- +(df_pre$"You can get vaccinated with HPV at: Mobile vaccination 
 df_pre$Q12d <- +(df_pre$"You can get vaccinated with HPV at: Religious homes" == "Yes")
 df_pre$Q12e <- +(df_pre$"You can get vaccinated with HPV at: All of the above" == "Yes")
 
+#We only want factual questions to be used to score the survey so chose the following questions
 df_pre$survey_score <- rowSums(df_pre[, c("Q1", "Q3", "Q4", "Q5", "Q6", "Q7", "Q9")], na.rm=T)
 
 

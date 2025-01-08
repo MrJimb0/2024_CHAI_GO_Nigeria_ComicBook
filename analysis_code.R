@@ -15,7 +15,6 @@ library(table1)
 library(sjPlot)
 
 setwd("/Users/jamesdickerson/Library/CloudStorage/Box-Box/Dickerson Lab/Dickerson_Lab_Github/2024_CHAI_GO_Nigeria_ComicBook/Data_/Updated files from Nicole 8:17:24")
-#setwd("/Users/nicolek/Desktop/GitHub/2024_CHAI_GO_Nigeria_ComicBook/Data_")
 
 df_pre <- read_xlsx("df_pre_cleaned.xlsx")
 df_post <- read_xlsx("df_post_cleaned.xlsx")
@@ -65,16 +64,9 @@ summary_stats <- as.data.frame(rbind(summary_stats,
                             pct_heardofHPV = c(mean(df_pre$heard_of_HPV, na.rm=TRUE))
                             )))
 print(summary_stats)
-#write_xlsx(summary_stats, path = "demographic_tablev1.xlsx")
-
-#alt version 
-# demographic_table <- table1(~Age + parent_college + Religion + survey_score + vaccination_status | State, data=df_pre, miss = 0)
-# demographic_table.df <- as.data.frame(demosummary_table)
-# write_xlsx(demographic_table.df, path = "demographic_table.xlsx")
-
 
 #DATA SUMMARIES: 
-#First, we look at baseline test scores by state. we expect a difference 
+#First, we look at baseline test scores by state. we expect a difference between the states given the different literacy rates
 pre_post_test_scores_by_state <- rbind(
   df_pre %>% group_by(State) %>%
     summarise(
@@ -136,7 +128,7 @@ kable(pre_post_test_scores_by_state_school, digits = 2)
 
 #look at each class 
   #There is a lot of unevenness in the representation of the classes For example, one class in Abuja has 8 in the pre-test and 20 in the post-test
-  #So we have a sampling error within the schools that we need to look at and discuss as a major limitation
+  #So we have a sampling error within the schools that we discussed with our Nigerian collaborators and tried to stress the limitations of our data quality in the manuscript
 pre_post_test_scores_by_state_school_class <- rbind(
   df_pre %>% group_by(State, School, Class) %>%
     summarise(
@@ -161,7 +153,7 @@ kable(pre_post_test_scores_by_state_school_class, digits = 2)
 pre_post_test_scores_by_state_school_class$`N_Post_test`
 
 #relationship between parental education and pre-test score both for mom and dad 
-#NA answers for parent education were not counted, note that none was a seperate option
+#NA answers for parent education were not counted, note that none was a separate option
 father_edu_vs_pre_test_score <- df_pre %>% 
   filter(!is.na(father_education)) %>%
   group_by(State, father_education) %>%
@@ -178,10 +170,9 @@ mother_edu_vs_pre_test_score <- mother_edu_vs_pre_test_score %>% rename(edu_leve
 
 parent_edu_vs_pre_test_score <- rbind(mother_edu_vs_pre_test_score, father_edu_vs_pre_test_score)
 df_edu <- parent_edu_vs_pre_test_score
-<<<<<<< Updated upstream
+
 kable(df_edu, digits = 2)
-=======
-    
+
 #reasons for no vax 
 vax_decisionfactors_post <- select(df_post, State, "Have you received the HPV vaccine?",
                               "If you haven't received the HPV vaccine, factors: Our state doesn’t have the HPV vaccine yet",
@@ -270,14 +261,10 @@ vax_hesitancy_pre <- vax_decisionfactors_pre %>%
            other = sum(vax_decisionfactors_pre$otherX, na.rm = TRUE))
   )
 
-write_xlsx(vax_hesitancy_post, path = "vax_hesitancy_post.xlsx")
-write_xlsx(vax_hesitancy_pre, path = "vax_hesitancy_pre.xlsx")
+#write_xlsx(vax_hesitancy_post, path = "vax_hesitancy_post.xlsx")
+#write_xlsx(vax_hesitancy_pre, path = "vax_hesitancy_pre.xlsx")
 
->>>>>>> Stashed changes
-
-#T-TESTS:
-#All results for knowledge gain are significant with improvements in scores 
-#Overall T test showing improvement in test scores for everyone
+#T-TESTS FOR SCORE IMPROVEMENT
 overall_t <- t.test(df_post$survey_score, df_pre$survey_score)
 kable(tidy(overall_t), digits = 2, caption = "Overall T-test Results")
 # by state
@@ -296,8 +283,7 @@ results_df$Stratification_Factor <- names(t_tests)
 #Output tables for score improvement t-test
 kable(results_df, digits = 2)
 
-
-#score improvement as pct -- Table 2
+#score improvement as pct -- Table 2 (we used 7 of the questions for scoring, see cleaning file)
 df_pre$survey_pct <- df_pre$survey_score/7
 df_post$survey_pct <- df_post$survey_score/7
 
@@ -331,9 +317,9 @@ summary_df3 <- data.frame(state = c("FCT", "Kaduna", "Lagos", "Rivers", "Overall
                           p_value = c(FCT_pct_htest$p.value, Kaduna_pct_htest$p.value, Lagos_pct_htest$p.value, Rivers_pct_htest$p.value, overall_pct_htest$p.value)
 )
 kable(summary_df3, digits = 2)
-write_xlsx(summary_df3, path = "summary_figure3.xlsx")
+#write_xlsx(summary_df3, path = "summary_figure3.xlsx")
 
-#t-tests for perception of vaccine
+#T-tests for perception of vaccine
 FCT_percep.htest = t.test(df_post[df_post$State == "FCT",]$perception, df_pre[df_pre$State == "FCT",]$perception)
 Kaduna_percep.htest = t.test(df_post[df_post$State == "Kaduna",]$perception, df_pre[df_pre$State == "Kaduna",]$perception)
 Rivers_percep.htest = t.test(df_post[df_post$State == "Rivers",]$perception, df_pre[df_pre$State == "Rivers",]$perception)
@@ -378,14 +364,16 @@ overall_vax.ttest
 overall_percep.ttest = t.test(df_post$perception, df_pre$perception)
 overall_percep.ttest
 
-#MIXED EFFECTS MODELS:
+#MIXED EFFECTS MODELS
+
 #Set up of a condensed df. Decided to condense at the level of the class as that is the smallest unit we have 
+#We did a lot of graphing to make sure that there was some linear relationship before we chose the final models but didn't include any graphs in the paper
 pre_score_mean <- df_pre %>% group_by(State, School, Class) %>% summarise(mean_score_pre = mean(survey_score, na.rm=TRUE))
 post_score_mean <- df_post %>% group_by(State,School,Class) %>% summarise(mean_score_post = mean(survey_score, na.rm=TRUE))
 df_condensed <- merge(pre_score_mean, post_score_mean, by=c("State", "School", "Class"), all = TRUE)
 
 #We will also look at the change in vaccination status. we know that Rivers/Kaduna had no vaccine prior to the intervention
-#So any NAs can be changed to 0 for pre
+#So any NAs can be changed to 0 for pre vaccination status for these states 
 df_pre_vaccination <- df_pre %>% group_by(State, School, Class) %>% 
   summarise(pre_vaccination_status = mean(vaccination_status, na.rm=T),
             pre_perception = mean(perception, na.rm=T))
@@ -406,8 +394,8 @@ df_condensed <- df_condensed %>%
          change_perception = post_perception - pre_perception,
          change_score = mean_score_post - mean_score_pre)
 
-#Add in the number of surveyed kids per class. 
-    #Because the numbers were different each time, we took an average of the number pre and post 
+#Add in the number of surveyed kids per class so we can generate weights for class size 
+#Because the number from each class were different pre to post, I took the average of pre/post for the class size weight
 df_condensed <- df_condensed %>%
   left_join(pre_post_test_scores_by_state_school_class, by = c("State", "School", "Class")) 
 
@@ -431,16 +419,12 @@ df_condensed <- df_condensed %>%
   left_join(df_parentedu, by = c("State", "School", "Class")) 
 
 
-#Write it for graphing
-write_xlsx(df_condensed, "df_condensed.xlsx")
-
-#This model is pre test predicts post test. which is pretty useless other than as a data check
+#This model is pre test predicts post test. which is pretty useless other than as a data check but looks as expected 
 model1 <- glm(mean_score_post ~ mean_score_pre, data = df_condensed, weights = class_size)
 model2 <- lmer(mean_score_post ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model1)
 summary(model2)
 
-<<<<<<< Updated upstream
 plot_model(model2, type = "pred", terms = "mean_score_pre")
 ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_size)) + 
   geom_point(alpha=0.5) + 
@@ -450,14 +434,11 @@ ggplot(df_condensed, aes(x = mean_score_pre, y = mean_score_post, size = class_s
   theme_classic()
 
 #Does Pre-test score predict score change ie learning?
-=======
-#exploratory models 
+#Exploratory models 
 em1 <- lmer(parent_college ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 em2 <- lmer(Age ~ survey_score + (1 | State), data = df_pre)
 
 #pre-test score predicting change in score
-##USE THIS ONE
->>>>>>> Stashed changes
 model3 <- lmer(change_score ~ mean_score_pre + (1 | State), data = df_condensed, weights = class_size)
 summary(model3)
 
@@ -468,7 +449,7 @@ ggplot(df_condensed, aes(x = mean_score_pre, y = change_score, size = class_size
        y = "Change Score") + 
   theme_classic()
 #Results show learning w downward slopes for all. if score of 3 then expect a change of 1.5. If score of 5 then expect a change of 0.5
-#Of course there is a cieling but effect is fairly linear 
+#Of course there is a cieling effect but overall fairly linear 
 
 #Now we ask if change in the test score, vaccine perception, or post-perception is predictive of change in vaccination status and post-vaccine status
 model4 <- lmer(change_vaccination_status ~ change_score + (1 | State), data = df_condensed, weights = class_size)
